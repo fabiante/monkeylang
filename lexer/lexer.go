@@ -27,25 +27,28 @@ func NewLexer(input string) *Lexer {
 func (l *Lexer) NextToken() (token.Token, error) {
 	var t token.Token
 
+	t.Literal = string(l.char)
+
 	switch l.char {
 	case '=':
-		t = newToken(token.Assign, string(l.char))
+		t.Type = token.Assign
 	case '+':
-		t = newToken(token.Plus, string(l.char))
+		t.Type = token.Plus
 	case '(':
-		t = newToken(token.LParen, string(l.char))
+		t.Type = token.LParen
 	case ')':
-		t = newToken(token.RParen, string(l.char))
+		t.Type = token.RParen
 	case '{':
-		t = newToken(token.LBrace, string(l.char))
+		t.Type = token.LBrace
 	case '}':
-		t = newToken(token.RBrace, string(l.char))
+		t.Type = token.RBrace
 	case ',':
-		t = newToken(token.Comma, string(l.char))
+		t.Type = token.Comma
 	case ';':
-		t = newToken(token.Semicolon, string(l.char))
+		t.Type = token.Semicolon
 	case 0:
-		t = newToken(token.EOF, "")
+		t.Type = token.EOF
+		t.Literal = ""
 	default:
 		t = newToken(token.Illegal, string(l.char))
 	}
