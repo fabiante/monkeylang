@@ -56,6 +56,10 @@ func (l *Lexer) NextToken() (token.Token, error) {
 			t.Literal = l.readIdentifier()
 			t.Type = token.LookupIdentifier(t.Literal)
 			return t, nil // readIdentifier already advanced chars
+		} else if isDigit(l.char) {
+			t.Literal = l.readDigit()
+			t.Type = token.Int
+			return t, nil // readDigit already advances chars
 		} else {
 			t = newToken(token.Illegal, string(l.char))
 		}
@@ -101,6 +105,18 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[pos:l.pos]
 }
 
+func (l *Lexer) readDigit() string {
+	pos := l.pos
+	for isDigit(l.char) {
+		l.readChar()
+	}
+	return l.input[pos:l.pos]
+}
+
 func isLetter(c byte) bool {
 	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_'
+}
+
+func isDigit(c byte) bool {
+	return '0' <= c && c <= '9'
 }
