@@ -25,6 +25,8 @@ func NewLexer(input string) *Lexer {
 }
 
 func (l *Lexer) NextToken() (token.Token, error) {
+	l.skipWhitespace()
+
 	var t token.Token
 
 	t.Literal = string(l.char)
@@ -50,7 +52,13 @@ func (l *Lexer) NextToken() (token.Token, error) {
 		t.Type = token.EOF
 		t.Literal = ""
 	default:
-		t = newToken(token.Illegal, string(l.char))
+		if isLetter(l.char) {
+			t.Literal = l.readIdentifier()
+			t.Type = token.LookupIdentifier(t.Literal)
+			return t, nil // readIdentifier already advanced chars
+		} else {
+			t = newToken(token.Illegal, string(l.char))
+		}
 	}
 
 	l.readChar()
@@ -65,6 +73,14 @@ func newToken(tokenType token.TokenType, literal string) token.Token {
 	}
 }
 
+func (l *Lexer) skipWhitespace() {
+	c := l.char
+	for c == ' ' || c == '\t' || c == '\n' || c == '\r' {
+		l.readChar()
+		c = l.char
+	}
+}
+
 func (l *Lexer) readChar() {
 	if l.nextPos >= len(l.input) {
 		l.char = 0
@@ -74,4 +90,17 @@ func (l *Lexer) readChar() {
 
 	l.pos = l.nextPos
 	l.nextPos += 1
+}
+
+func (l *Lexer) readIdentifier() string {
+	pos := l.pos
+	// read until a non-letter is encountered
+	for isLetter(l.char) {
+		l.readChar()
+	}
+	return l.input[pos:l.pos]
+}
+
+func isLetter(c byte) bool {
+	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z' || c == '_'
 }
