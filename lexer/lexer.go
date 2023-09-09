@@ -96,6 +96,14 @@ func (l *Lexer) readChar() {
 	l.nextPos += 1
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.nextPos >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.nextPos]
+	}
+}
+
 func (l *Lexer) readIdentifier() string {
 	pos := l.pos
 	// read until a non-letter is encountered
