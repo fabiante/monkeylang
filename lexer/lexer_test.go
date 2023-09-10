@@ -136,7 +136,7 @@ let result = add(five, ten);`
 		}
 	})
 
-	t.Run("control flow", func(t *testing.T) {
+	t.Run("if else return", func(t *testing.T) {
 		input := `if true {} else {return 5;}`
 
 		tests := []struct {
@@ -153,6 +153,36 @@ let result = add(five, ten);`
 			{token.Int, "5"},
 			{token.Semicolon, ";"},
 			{token.RBrace, "}"},
+			{token.EOF, ""},
+		}
+
+		lexer := NewLexer(input)
+
+		for i, test := range tests {
+			actual, err := lexer.NextToken()
+			require.NoError(t, err, "error when parsing token %d", i)
+			require.NotNil(t, actual, "parsing token %d returned nil", i)
+
+			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
+			assert.Equal(t, test.expectedType, actual.Type, "unexpected token type %d", i)
+		}
+	})
+
+	t.Run("bool comparisons", func(t *testing.T) {
+		input := `a == a; a != a;`
+
+		tests := []struct {
+			expectedType    token.TokenType
+			expectedLiteral string
+		}{
+			{token.Identifier, "a"},
+			{token.EQ, "=="},
+			{token.Identifier, "a"},
+			{token.Semicolon, ";"},
+			{token.Identifier, "a"},
+			{token.NEQ, "!="},
+			{token.Identifier, "a"},
+			{token.Semicolon, ";"},
 			{token.EOF, ""},
 		}
 

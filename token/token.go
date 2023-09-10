@@ -21,6 +21,8 @@ const (
 
 	LT
 	GT
+	EQ
+	NEQ
 
 	Comma
 	Semicolon

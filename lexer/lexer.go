@@ -33,13 +33,25 @@ func (l *Lexer) NextToken() (token.Token, error) {
 
 	switch l.char {
 	case '=':
-		t.Type = token.Assign
+		if l.peekChar() == '=' {
+			t.Type = token.EQ
+			l.readChar()
+			t.Literal = t.Literal + string(l.char)
+		} else {
+			t.Type = token.Assign
+		}
 	case '+':
 		t.Type = token.Plus
 	case '-':
 		t.Type = token.Minus
 	case '!':
-		t.Type = token.Bang
+		if l.peekChar() == '=' {
+			t.Type = token.NEQ
+			l.readChar()
+			t.Literal = t.Literal + string(l.char)
+		} else {
+			t.Type = token.Bang
+		}
 	case '*':
 		t.Type = token.Asterisk
 	case '/':
