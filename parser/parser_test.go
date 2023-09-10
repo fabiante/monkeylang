@@ -58,6 +58,28 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmt := program.Statements[0]
 		assertReturnStatement(t, stmt)
 	})
+
+	t.Run("identifier expression", func(t *testing.T) {
+		input := `foobar;`
+
+		lex := lexer.NewLexer(input)
+		par := NewParser(lex)
+
+		program := par.ParseProgram()
+		requireNoParserErrors(t, par)
+		require.NotNil(t, program)
+		require.Len(t, program.Statements, 1)
+
+		stmt := program.Statements[0]
+		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+
+		identifier, ok := stmtExpression.Expression.(*ast.Identifier)
+		require.True(t, ok, "stmt expression has unexpected type %T", stmt)
+
+		assert.Equal(t, "foobar", identifier.Value)
+		assert.Equal(t, "foobar", identifier.TokenLiteral())
+	})
 }
 
 func assertLetStatement(t *testing.T, node ast.Statement, name string) {
