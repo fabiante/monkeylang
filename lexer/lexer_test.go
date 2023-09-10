@@ -102,4 +102,69 @@ let result = add(five, ten);`
 			assert.Equal(t, test.expectedType, actual.Type, "unexpected token type %d", i)
 		}
 	})
+
+	t.Run("operations and comparators", func(t *testing.T) {
+		input := `!-/*5;5 < 10 > 5`
+
+		tests := []struct {
+			expectedType    token.TokenType
+			expectedLiteral string
+		}{
+			{token.Bang, "!"},
+			{token.Minus, "-"},
+			{token.Slash, "/"},
+			{token.Asterisk, "*"},
+			{token.Int, "5"},
+			{token.Semicolon, ";"},
+			{token.Int, "5"},
+			{token.LT, "<"},
+			{token.Int, "10"},
+			{token.GT, ">"},
+			{token.Int, "5"},
+			{token.EOF, ""},
+		}
+
+		lexer := NewLexer(input)
+
+		for i, test := range tests {
+			actual, err := lexer.NextToken()
+			require.NoError(t, err, "error when parsing token %d", i)
+			require.NotNil(t, actual, "parsing token %d returned nil", i)
+
+			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
+			assert.Equal(t, test.expectedType, actual.Type, "unexpected token type %d", i)
+		}
+	})
+
+	t.Run("control flow", func(t *testing.T) {
+		input := `if true {} else {return 5;}`
+
+		tests := []struct {
+			expectedType    token.TokenType
+			expectedLiteral string
+		}{
+			{token.If, "if"},
+			{token.True, "true"},
+			{token.LBrace, "{"},
+			{token.RBrace, "}"},
+			{token.Else, "else"},
+			{token.LBrace, "{"},
+			{token.Return, "return"},
+			{token.Int, "5"},
+			{token.Semicolon, ";"},
+			{token.RBrace, "}"},
+			{token.EOF, ""},
+		}
+
+		lexer := NewLexer(input)
+
+		for i, test := range tests {
+			actual, err := lexer.NextToken()
+			require.NoError(t, err, "error when parsing token %d", i)
+			require.NotNil(t, actual, "parsing token %d returned nil", i)
+
+			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
+			assert.Equal(t, test.expectedType, actual.Type, "unexpected token type %d", i)
+		}
+	})
 }

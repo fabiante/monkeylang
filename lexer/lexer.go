@@ -36,6 +36,18 @@ func (l *Lexer) NextToken() (token.Token, error) {
 		t.Type = token.Assign
 	case '+':
 		t.Type = token.Plus
+	case '-':
+		t.Type = token.Minus
+	case '!':
+		t.Type = token.Bang
+	case '*':
+		t.Type = token.Asterisk
+	case '/':
+		t.Type = token.Slash
+	case '<':
+		t.Type = token.LT
+	case '>':
+		t.Type = token.GT
 	case '(':
 		t.Type = token.LParen
 	case ')':
