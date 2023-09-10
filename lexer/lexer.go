@@ -24,7 +24,7 @@ func NewLexer(input string) *Lexer {
 	return lexer
 }
 
-func (l *Lexer) NextToken() (token.Token, error) {
+func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	var t token.Token
@@ -79,11 +79,11 @@ func (l *Lexer) NextToken() (token.Token, error) {
 		if isLetter(l.char) {
 			t.Literal = l.readIdentifier()
 			t.Type = token.LookupIdentifier(t.Literal)
-			return t, nil // readIdentifier already advanced chars
+			return t // readIdentifier already advanced chars
 		} else if isDigit(l.char) {
 			t.Literal = l.readDigit()
 			t.Type = token.Int
-			return t, nil // readDigit already advances chars
+			return t // readDigit already advances chars
 		} else {
 			t = newToken(token.Illegal, string(l.char))
 		}
@@ -91,7 +91,7 @@ func (l *Lexer) NextToken() (token.Token, error) {
 
 	l.readChar()
 
-	return t, nil
+	return t
 }
 
 func newToken(tokenType token.TokenType, literal string) token.Token {

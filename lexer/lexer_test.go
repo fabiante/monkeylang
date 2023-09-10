@@ -29,8 +29,7 @@ func TestLexer_NextToken(t *testing.T) {
 		lexer := NewLexer(input)
 
 		for i, test := range tests {
-			actual, err := lexer.NextToken()
-			require.NoError(t, err, "error when parsing token %d", i)
+			actual := lexer.NextToken()
 			require.NotNil(t, actual, "parsing token %d returned nil", i)
 
 			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
@@ -94,8 +93,7 @@ let result = add(five, ten);`
 		lexer := NewLexer(input)
 
 		for i, test := range tests {
-			actual, err := lexer.NextToken()
-			require.NoError(t, err, "error when parsing token %d", i)
+			actual := lexer.NextToken()
 			require.NotNil(t, actual, "parsing token %d returned nil", i)
 
 			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
@@ -127,8 +125,7 @@ let result = add(five, ten);`
 		lexer := NewLexer(input)
 
 		for i, test := range tests {
-			actual, err := lexer.NextToken()
-			require.NoError(t, err, "error when parsing token %d", i)
+			actual := lexer.NextToken()
 			require.NotNil(t, actual, "parsing token %d returned nil", i)
 
 			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
@@ -159,8 +156,7 @@ let result = add(five, ten);`
 		lexer := NewLexer(input)
 
 		for i, test := range tests {
-			actual, err := lexer.NextToken()
-			require.NoError(t, err, "error when parsing token %d", i)
+			actual := lexer.NextToken()
 			require.NotNil(t, actual, "parsing token %d returned nil", i)
 
 			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
@@ -189,8 +185,7 @@ let result = add(five, ten);`
 		lexer := NewLexer(input)
 
 		for i, test := range tests {
-			actual, err := lexer.NextToken()
-			require.NoError(t, err, "error when parsing token %d", i)
+			actual := lexer.NextToken()
 			require.NotNil(t, actual, "parsing token %d returned nil", i)
 
 			assert.Equal(t, test.expectedLiteral, actual.Literal, "unexpected token literal %d", i)
