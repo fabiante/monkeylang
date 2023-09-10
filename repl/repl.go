@@ -6,7 +6,6 @@ import (
 	"github.com/fabiante/monkeylang/lexer"
 	"github.com/fabiante/monkeylang/token"
 	"io"
-	"os"
 )
 
 const Prompt = ">> "
@@ -25,11 +24,7 @@ func Start(in io.Reader, out io.Writer) {
 
 		lex := lexer.NewLexer(line)
 
-		for t, err := lex.NextToken(); t.Type != token.EOF; t, err = lex.NextToken() {
-			if err != nil {
-				_, _ = fmt.Fprintf(out, "encountered error: %s", err)
-				os.Exit(1)
-			}
+		for t := lex.NextToken(); t.Type != token.EOF; t = lex.NextToken() {
 			_, _ = fmt.Fprintf(out, "%+v\n", t)
 		}
 	}
