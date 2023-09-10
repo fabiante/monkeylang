@@ -5,6 +5,7 @@ import (
 	"github.com/fabiante/monkeylang/ast"
 	"github.com/fabiante/monkeylang/lexer"
 	"github.com/fabiante/monkeylang/token"
+	"strconv"
 )
 
 type (
@@ -33,6 +34,7 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	}
 
 	p.registerPrefixParseFn(token.Identifier, p.parseIdentifier)
+	p.registerPrefixParseFn(token.Int, p.parseIntLiteral)
 
 	p.nextToken()
 	p.nextToken()
@@ -140,6 +142,21 @@ func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{
 		Token: p.currToken,
 		Value: p.currToken.Literal,
+	}
+}
+
+func (p *Parser) parseIntLiteral() ast.Expression {
+	literal := p.currToken.Literal
+
+	value, err := strconv.ParseInt(literal, 0, 64)
+	if err != nil {
+		p.errors = append(p.errors, fmt.Sprintf("could not parse %s as integer", literal))
+		return nil
+	}
+
+	return &ast.IntegerLiteral{
+		Token: p.currToken,
+		Value: value,
 	}
 }
 
