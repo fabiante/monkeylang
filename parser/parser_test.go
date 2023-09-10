@@ -43,6 +43,21 @@ func TestParser_ParseProgram(t *testing.T) {
 			assertLetStatement(t, stmt, test.expectedIdentifier)
 		}
 	})
+
+	t.Run("return statement", func(t *testing.T) {
+		input := `return 12 + 5;`
+
+		lex := lexer.NewLexer(input)
+		par := NewParser(lex)
+
+		program := par.ParseProgram()
+		requireNoParserErrors(t, par)
+		require.NotNil(t, program)
+		require.Len(t, program.Statements, 1)
+
+		stmt := program.Statements[0]
+		assertReturnStatement(t, stmt)
+	})
 }
 
 func assertLetStatement(t *testing.T, node ast.Statement, name string) {
@@ -54,6 +69,14 @@ func assertLetStatement(t *testing.T, node ast.Statement, name string) {
 
 	assert.Equal(t, name, stmt.Name.Value)
 	assert.Equal(t, name, stmt.Name.TokenLiteral())
+}
+
+func assertReturnStatement(t *testing.T, node ast.Statement) {
+	require.NotNil(t, node)
+	assert.Equal(t, "return", node.TokenLiteral())
+
+	_, ok := node.(*ast.ReturnStatement)
+	require.True(t, ok, "node is not of expected type, got %T", node)
 }
 
 func requireNoParserErrors(t *testing.T, p *Parser) {
