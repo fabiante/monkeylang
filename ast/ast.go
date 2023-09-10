@@ -3,6 +3,7 @@ package ast
 type Node interface {
 	// TokenLiteral is used only for debugging / testing
 	TokenLiteral() string
+	String() string
 }
 
 // A Statement is something that does not produce a value.
