@@ -10,7 +10,7 @@ import (
 type Parser struct {
 	lexer *lexer.Lexer
 
-	token     token.Token
+	currToken token.Token
 	peekToken token.Token
 
 	errors []string
@@ -38,7 +38,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 }
 
 func (p *Parser) parseStatement() ast.Statement {
-	switch p.token.Type {
+	switch p.currToken.Type {
 	case token.Let:
 		return p.parseLetStatement()
 	case token.Return:
@@ -50,7 +50,7 @@ func (p *Parser) parseStatement() ast.Statement {
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt := &ast.LetStatement{
-		Token: p.token,
+		Token: p.currToken,
 		Name:  nil,
 		Value: nil,
 	}
@@ -60,8 +60,8 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	stmt.Name = &ast.Identifier{
-		Token: p.token,
-		Value: p.token.Literal,
+		Token: p.currToken,
+		Value: p.currToken.Literal,
 	}
 
 	if !p.expectPeek(token.Assign) {
@@ -78,7 +78,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 
 func (p *Parser) parseReturnStatement() ast.Statement {
 	stmt := &ast.ReturnStatement{
-		Token:       p.token,
+		Token:       p.currToken,
 		ReturnValue: nil,
 	}
 
@@ -91,7 +91,7 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 }
 
 func (p *Parser) nextToken() {
-	p.token = p.peekToken
+	p.currToken = p.peekToken
 	peek := p.lexer.NextToken()
 	p.peekToken = peek
 }
@@ -121,7 +121,7 @@ func (p *Parser) Errors() []string {
 }
 
 func (p *Parser) currTokenIs(t token.TokenType) bool {
-	return p.token.Type == t
+	return p.currToken.Type == t
 }
 
 func (p *Parser) peekTokenIs(t token.TokenType) bool {
