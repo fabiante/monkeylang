@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/fabiante/monkeylang/ast"
 	"github.com/fabiante/monkeylang/lexer"
 	"github.com/fabiante/monkeylang/token"
@@ -11,10 +12,12 @@ type Parser struct {
 
 	token     token.Token
 	peekToken token.Token
+
+	errors []string
 }
 
 func NewParser(lexer *lexer.Lexer) *Parser {
-	p := &Parser{lexer: lexer}
+	p := &Parser{lexer: lexer, errors: make([]string, 0)}
 	p.nextToken()
 	p.nextToken()
 	return p
@@ -51,7 +54,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	if !p.expectPeek(token.Identifier) {
-		return nil // TODO: error?
+		return nil
 	}
 
 	stmt.Name = &ast.Identifier{
@@ -60,7 +63,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	}
 
 	if !p.expectPeek(token.Assign) {
-		return nil // TODO: error?
+		return nil
 	}
 
 	// TODO: Parse expression instead of ignoring it and skipping to semicolon
@@ -87,8 +90,18 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	} else {
+		p.peekError(t)
 		return false
 	}
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	err := fmt.Sprintf("expected token type %d, got %d instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, err)
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
 }
 
 func (p *Parser) currTokenIs(t token.TokenType) bool {
