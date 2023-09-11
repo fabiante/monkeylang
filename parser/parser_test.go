@@ -42,7 +42,7 @@ func TestParser_ParseProgram(t *testing.T) {
 
 		for i, test := range tests {
 			stmt := program.Statements[i]
-			assertLetStatement(t, stmt, test.expectedIdentifier)
+			assertLetStatement(t, test.expectedIdentifier, stmt)
 		}
 	})
 
@@ -98,7 +98,7 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
 		require.True(t, ok, "stmt has unexpected type %T", stmt)
 
-		assertIntegerLiteral(t, stmtExpression.Expression, 5)
+		assertIntegerLiteral(t, 5, stmtExpression.Expression)
 	})
 
 	t.Run("prefix operators", func(t *testing.T) {
@@ -129,7 +129,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
 
 				assert.Equal(t, test.operator, prefix.Operator)
-				assertIntegerLiteral(t, prefix.Right, test.value)
+				assertIntegerLiteral(t, test.value, prefix.Right)
 			})
 		}
 	})
@@ -169,8 +169,8 @@ func TestParser_ParseProgram(t *testing.T) {
 				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
 
 				assert.Equal(t, test.operator, prefix.Operator)
-				assertIntegerLiteral(t, prefix.Left, test.left)
-				assertIntegerLiteral(t, prefix.Right, test.right)
+				assertIntegerLiteral(t, test.left, prefix.Left)
+				assertIntegerLiteral(t, test.right, prefix.Right)
 			})
 		}
 	})
@@ -231,7 +231,7 @@ func TestParser_ParseProgram(t *testing.T) {
 	})
 }
 
-func assertLetStatement(t *testing.T, node ast.Statement, name string) {
+func assertLetStatement(t *testing.T, name string, node ast.Statement) {
 	require.NotNil(t, node)
 	assert.Equal(t, "let", node.TokenLiteral())
 
@@ -250,7 +250,7 @@ func assertReturnStatement(t *testing.T, node ast.Statement) {
 	require.True(t, ok, "node is not of expected type, got %T", node)
 }
 
-func assertIntegerLiteral(t *testing.T, node ast.Expression, expected int64) {
+func assertIntegerLiteral(t *testing.T, expected int64, node ast.Expression) {
 	identifier, ok := node.(*ast.IntegerLiteral)
 	require.True(t, ok, "node has unexpected type %T", node)
 
