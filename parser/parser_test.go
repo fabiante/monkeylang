@@ -123,10 +123,11 @@ func TestParser_ParseProgram(t *testing.T) {
 		tests := []struct {
 			input    string
 			operator string
-			value    int64
+			value    any
 		}{
 			{"-15;", "-", 15},
 			{"!9;", "!", 9},
+			{"!false;", "!", false},
 		}
 
 		for _, test := range tests {
