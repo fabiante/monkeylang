@@ -35,6 +35,8 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 
 	p.registerPrefixParseFn(token.Identifier, p.parseIdentifier)
 	p.registerPrefixParseFn(token.Int, p.parseIntLiteral)
+	p.registerPrefixParseFn(token.Bang, p.parsePrefixExpression)
+	p.registerPrefixParseFn(token.Minus, p.parsePrefixExpression)
 
 	p.nextToken()
 	p.nextToken()
@@ -121,6 +123,7 @@ func (p *Parser) parseExpressionStatement() ast.Statement {
 	return stmt
 }
 
+// parseExpression parses an expression starting with the currToken and the given precedence.
 func (p *Parser) parseExpression(precedence precedence) ast.Expression {
 	prefix := p.prefixParseFns[p.currToken.Type]
 	if prefix == nil {
@@ -159,6 +162,20 @@ func (p *Parser) parseIntLiteral() ast.Expression {
 		Token: p.currToken,
 		Value: value,
 	}
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	exp := &ast.PrefixExpression{
+		Token:    p.currToken,
+		Operator: p.currToken.Literal,
+		Right:    nil,
+	}
+
+	p.nextToken()
+
+	exp.Right = p.parseExpression(prefix)
+
+	return exp
 }
 
 // expectPeek checks if the next token is of the given type,
