@@ -132,6 +132,47 @@ func TestParser_ParseProgram(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("infix operators", func(t *testing.T) {
+		tests := []struct {
+			input    string
+			operator string
+			left     int64
+			right    int64
+		}{
+			{"5 + 6;", "+", 5, 6},
+			{"5 - 6;", "-", 5, 6},
+			{"5 * 6;", "*", 5, 6},
+			{"5 / 6;", "/", 5, 6},
+			{"5 > 6;", ">", 5, 6},
+			{"5 < 6;", "<", 5, 6},
+			{"5 == 6;", "==", 5, 6},
+			{"5 != 6;", "!=", 5, 6},
+		}
+
+		for _, test := range tests {
+			t.Run(test.operator, func(t *testing.T) {
+				lex := lexer.NewLexer(test.input)
+				par := NewParser(lex)
+
+				program := par.ParseProgram()
+				requireNoParserErrors(t, par)
+				require.NotNil(t, program)
+				require.Len(t, program.Statements, 1)
+
+				stmt := program.Statements[0]
+				stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+				require.True(t, ok, "stmt has unexpected type %T", stmt)
+
+				prefix, ok := stmtExpression.Expression.(*ast.InfixExpression)
+				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
+
+				assert.Equal(t, test.operator, prefix.Operator)
+				assertIntegerLiteral(t, prefix.Left, test.left)
+				assertIntegerLiteral(t, prefix.Right, test.right)
+			})
+		}
+	})
 }
 
 func assertLetStatement(t *testing.T, node ast.Statement, name string) {
