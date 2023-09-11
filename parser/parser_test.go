@@ -97,14 +97,37 @@ func TestParser_ParseProgram(t *testing.T) {
 		assertLiteral(t, 5, stmtExpression.Expression)
 	})
 
+	t.Run("boolean literal expression", func(t *testing.T) {
+		input := `true;false;`
+
+		lex := lexer.NewLexer(input)
+		par := NewParser(lex)
+
+		program := par.ParseProgram()
+		requireNoParserErrors(t, par)
+		require.NotNil(t, program)
+		require.Len(t, program.Statements, 2)
+
+		stmt := program.Statements[0]
+		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+		assertLiteral(t, true, stmtExpression.Expression)
+
+		stmt = program.Statements[1]
+		stmtExpression, ok = stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+		assertLiteral(t, false, stmtExpression.Expression)
+	})
+
 	t.Run("prefix operators", func(t *testing.T) {
 		tests := []struct {
 			input    string
 			operator string
-			value    int64
+			value    any
 		}{
 			{"-15;", "-", 15},
 			{"!9;", "!", 9},
+			{"!false;", "!", false},
 		}
 
 		for _, test := range tests {
@@ -130,12 +153,12 @@ func TestParser_ParseProgram(t *testing.T) {
 		}
 	})
 
-	t.Run("infix operators", func(t *testing.T) {
+	t.Run("infix expressions", func(t *testing.T) {
 		tests := []struct {
 			input    string
 			operator string
-			left     int64
-			right    int64
+			left     any
+			right    any
 		}{
 			{"5 + 6;", "+", 5, 6},
 			{"5 - 6;", "-", 5, 6},
@@ -145,6 +168,8 @@ func TestParser_ParseProgram(t *testing.T) {
 			{"5 < 6;", "<", 5, 6},
 			{"5 == 6;", "==", 5, 6},
 			{"5 != 6;", "!=", 5, 6},
+			{"false != true;", "!=", false, true},
+			{"true != false;", "!=", true, false},
 		}
 
 		for _, test := range tests {
@@ -199,6 +224,27 @@ func TestParser_ParseProgram(t *testing.T) {
 				"3 + 4 * 5 == 3 * 1 + 4 * 5",
 				"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
 			},
+			// tests oriented around booleans
+			{
+				"true",
+				"true",
+			},
+			{
+				"false",
+				"false",
+			},
+			{
+				"3 > 5 == false",
+				"((3 > 5) == false)",
+			},
+			{
+				"false == 3 > 5",
+				"(false == (3 > 5))",
+			},
+			{
+				"3 < 5 == true",
+				"((3 < 5) == true)",
+			},
 		}
 
 		for i, test := range tests {
@@ -249,6 +295,8 @@ func assertLiteral(t *testing.T, value any, node ast.Expression) {
 		assertIntegerLiteral(t, v, node)
 	case int:
 		assertIntegerLiteral(t, int64(v), node)
+	case bool:
+		assertBooleanLiteral(t, v, node)
 	default:
 		panic(fmt.Errorf("unexpected value type %T", v))
 	}
@@ -260,6 +308,14 @@ func assertIntegerLiteral(t *testing.T, expected int64, node ast.Expression) {
 
 	assert.Equal(t, expected, identifier.Value)
 	assert.Equal(t, strconv.FormatInt(expected, 10), identifier.TokenLiteral())
+}
+
+func assertBooleanLiteral(t *testing.T, expected bool, node ast.Expression) {
+	identifier, ok := node.(*ast.BooleanLiteral)
+	require.True(t, ok, "node has unexpected type %T", node)
+
+	assert.Equal(t, expected, identifier.Value)
+	assert.Equal(t, strconv.FormatBool(expected), identifier.TokenLiteral())
 }
 
 func assertIdentifier(t *testing.T, value string, node ast.Expression) {
