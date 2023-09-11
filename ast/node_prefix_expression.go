@@ -24,7 +24,4 @@ func (p *PrefixExpression) String() string {
 	return out.String()
 }
 
-func (p *PrefixExpression) expressionNode() {
-	//TODO implement me
-	panic("implement me")
-}
+func (p *PrefixExpression) expressionNode() {}
