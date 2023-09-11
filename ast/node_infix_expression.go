@@ -20,7 +20,9 @@ func (p *InfixExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("(")
 	out.WriteString(p.Left.String())
+	out.WriteString(" ")
 	out.WriteString(p.Operator)
+	out.WriteString(" ")
 	out.WriteString(p.Right.String())
 	out.WriteString(")")
 	return out.String()
