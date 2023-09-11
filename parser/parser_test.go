@@ -5,6 +5,7 @@ import (
 	"github.com/fabiante/monkeylang/lexer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"strconv"
 	"testing"
 )
 
@@ -58,6 +59,46 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmt := program.Statements[0]
 		assertReturnStatement(t, stmt)
 	})
+
+	t.Run("identifier expression", func(t *testing.T) {
+		input := `foobar;`
+
+		lex := lexer.NewLexer(input)
+		par := NewParser(lex)
+
+		program := par.ParseProgram()
+		requireNoParserErrors(t, par)
+		require.NotNil(t, program)
+		require.Len(t, program.Statements, 1)
+
+		stmt := program.Statements[0]
+		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+
+		identifier, ok := stmtExpression.Expression.(*ast.Identifier)
+		require.True(t, ok, "stmt expression has unexpected type %T", stmt)
+
+		assert.Equal(t, "foobar", identifier.Value)
+		assert.Equal(t, "foobar", identifier.TokenLiteral())
+	})
+
+	t.Run("integer literal expression", func(t *testing.T) {
+		input := `5;`
+
+		lex := lexer.NewLexer(input)
+		par := NewParser(lex)
+
+		program := par.ParseProgram()
+		requireNoParserErrors(t, par)
+		require.NotNil(t, program)
+		require.Len(t, program.Statements, 1)
+
+		stmt := program.Statements[0]
+		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+
+		assertIntegerLiteral(t, stmtExpression.Expression, 5)
+	})
 }
 
 func assertLetStatement(t *testing.T, node ast.Statement, name string) {
@@ -77,6 +118,14 @@ func assertReturnStatement(t *testing.T, node ast.Statement) {
 
 	_, ok := node.(*ast.ReturnStatement)
 	require.True(t, ok, "node is not of expected type, got %T", node)
+}
+
+func assertIntegerLiteral(t *testing.T, node ast.Expression, expected int64) {
+	identifier, ok := node.(*ast.IntegerLiteral)
+	require.True(t, ok, "node has unexpected type %T", node)
+
+	assert.Equal(t, expected, identifier.Value)
+	assert.Equal(t, strconv.FormatInt(expected, 10), identifier.TokenLiteral())
 }
 
 func requireNoParserErrors(t *testing.T, p *Parser) {
