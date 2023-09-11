@@ -94,7 +94,7 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
 		require.True(t, ok, "stmt has unexpected type %T", stmt)
 
-		assertIntegerLiteral(t, 5, stmtExpression.Expression)
+		assertLiteral(t, 5, stmtExpression.Expression)
 	})
 
 	t.Run("prefix operators", func(t *testing.T) {
@@ -125,7 +125,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
 
 				assert.Equal(t, test.operator, prefix.Operator)
-				assertIntegerLiteral(t, test.value, prefix.Right)
+				assertLiteral(t, test.value, prefix.Right)
 			})
 		}
 	})
@@ -165,6 +165,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
 
 				assert.Equal(t, test.operator, prefix.Operator)
+
 				assertIntegerLiteral(t, test.left, prefix.Left)
 				assertIntegerLiteral(t, test.right, prefix.Right)
 			})
@@ -244,6 +245,19 @@ func assertReturnStatement(t *testing.T, node ast.Statement) {
 
 	_, ok := node.(*ast.ReturnStatement)
 	require.True(t, ok, "node is not of expected type, got %T", node)
+}
+
+func assertLiteral(t *testing.T, value any, node ast.Expression) {
+	require.NotNil(t, node)
+
+	switch v := value.(type) {
+	case int64:
+		assertIntegerLiteral(t, v, node)
+	case int:
+		assertIntegerLiteral(t, int64(v), node)
+	default:
+		panic(fmt.Errorf("unexpected value type %T", v))
+	}
 }
 
 func assertIntegerLiteral(t *testing.T, expected int64, node ast.Expression) {
