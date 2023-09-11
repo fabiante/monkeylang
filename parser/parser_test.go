@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/fabiante/monkeylang/ast"
 	"github.com/fabiante/monkeylang/lexer"
 	"github.com/stretchr/testify/assert"
@@ -129,6 +130,102 @@ func TestParser_ParseProgram(t *testing.T) {
 
 				assert.Equal(t, test.operator, prefix.Operator)
 				assertIntegerLiteral(t, prefix.Right, test.value)
+			})
+		}
+	})
+
+	t.Run("infix operators", func(t *testing.T) {
+		tests := []struct {
+			input    string
+			operator string
+			left     int64
+			right    int64
+		}{
+			{"5 + 6;", "+", 5, 6},
+			{"5 - 6;", "-", 5, 6},
+			{"5 * 6;", "*", 5, 6},
+			{"5 / 6;", "/", 5, 6},
+			{"5 > 6;", ">", 5, 6},
+			{"5 < 6;", "<", 5, 6},
+			{"5 == 6;", "==", 5, 6},
+			{"5 != 6;", "!=", 5, 6},
+		}
+
+		for _, test := range tests {
+			t.Run(test.operator, func(t *testing.T) {
+				lex := lexer.NewLexer(test.input)
+				par := NewParser(lex)
+
+				program := par.ParseProgram()
+				requireNoParserErrors(t, par)
+				require.NotNil(t, program)
+				require.Len(t, program.Statements, 1)
+
+				stmt := program.Statements[0]
+				stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+				require.True(t, ok, "stmt has unexpected type %T", stmt)
+
+				prefix, ok := stmtExpression.Expression.(*ast.InfixExpression)
+				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
+
+				assert.Equal(t, test.operator, prefix.Operator)
+				assertIntegerLiteral(t, prefix.Left, test.left)
+				assertIntegerLiteral(t, prefix.Right, test.right)
+			})
+		}
+	})
+
+	t.Run("operator precedence", func(t *testing.T) {
+		tests := []struct {
+			input    string
+			expected string
+		}{
+			{
+				"a + b * c",
+				"(a + (b * c))",
+			},
+			{
+				"a + b / c",
+				"(a + (b / c))",
+			},
+			{
+				"a + b * c + d / e - f",
+				"(((a + (b * c)) + (d / e)) - f)",
+			},
+			{
+				"5 > 4 == 3 < 4",
+				"((5 > 4) == (3 < 4))",
+			},
+			{
+				"5 < 4 != 3 > 4",
+				"((5 < 4) != (3 > 4))",
+			},
+			{
+				"3 + 4 * 5 == 3 * 1 + 4 * 5",
+				"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+			},
+			{
+				"3 + 4 * 5 == 3 * 1 + 4 * 5",
+				"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+			},
+		}
+
+		for i, test := range tests {
+			t.Run(fmt.Sprintf("tests[%d]", i), func(t *testing.T) {
+				lex := lexer.NewLexer(test.input)
+				par := NewParser(lex)
+
+				program := par.ParseProgram()
+				requireNoParserErrors(t, par)
+				require.NotNil(t, program)
+				require.Len(t, program.Statements, 1)
+
+				stmt := program.Statements[0]
+				stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+				require.True(t, ok, "stmt has unexpected type %T", stmt)
+
+				assert.Equal(t, test.expected, stmtExpression.String())
+				assert.Equal(t, test.expected, program.String())
 			})
 		}
 	})

@@ -38,6 +38,15 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 	p.registerPrefixParseFn(token.Bang, p.parsePrefixExpression)
 	p.registerPrefixParseFn(token.Minus, p.parsePrefixExpression)
 
+	p.registerInfixParseFn(token.EQ, p.parseInfixExpression)
+	p.registerInfixParseFn(token.NEQ, p.parseInfixExpression)
+	p.registerInfixParseFn(token.LT, p.parseInfixExpression)
+	p.registerInfixParseFn(token.GT, p.parseInfixExpression)
+	p.registerInfixParseFn(token.Plus, p.parseInfixExpression)
+	p.registerInfixParseFn(token.Minus, p.parseInfixExpression)
+	p.registerInfixParseFn(token.Slash, p.parseInfixExpression)
+	p.registerInfixParseFn(token.Asterisk, p.parseInfixExpression)
+
 	p.nextToken()
 	p.nextToken()
 	return p
@@ -130,8 +139,17 @@ func (p *Parser) parseExpression(precedence precedence) ast.Expression {
 		p.noPrefixParseFnError(p.currToken.Type)
 		return nil
 	}
-
 	leftExp := prefix()
+
+	for !p.peekTokenIs(token.Semicolon) && precedence < p.peekPrecedence() {
+		infix := p.infixParseFns[p.peekToken.Type]
+		if infix == nil {
+			return leftExp
+		}
+
+		p.nextToken()
+		leftExp = infix(leftExp)
+	}
 
 	return leftExp
 }
@@ -174,6 +192,21 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	p.nextToken()
 
 	exp.Right = p.parseExpression(prefix)
+
+	return exp
+}
+
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	exp := &ast.InfixExpression{
+		Token:    p.currToken,
+		Operator: p.currToken.Literal,
+		Left:     left,
+		Right:    nil,
+	}
+
+	pre := p.currPrecedence()
+	p.nextToken()
+	exp.Right = p.parseExpression(pre)
 
 	return exp
 }
@@ -221,4 +254,18 @@ func (p *Parser) registerPrefixParseFn(t token.TokenType, fn prefixParseFn) {
 
 func (p *Parser) registerInfixParseFn(t token.TokenType, fn infixParseFn) {
 	p.infixParseFns[t] = fn
+}
+
+func (p *Parser) peekPrecedence() precedence {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+	return lowest
+}
+
+func (p *Parser) currPrecedence() precedence {
+	if p, ok := precedences[p.currToken.Type]; ok {
+		return p
+	}
+	return lowest
 }
