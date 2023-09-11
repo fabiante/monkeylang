@@ -106,8 +106,8 @@ func TestParser_ParseProgram(t *testing.T) {
 			operator string
 			value    int64
 		}{
-			{"-15;", "-", 5},
-			{"!9;", "!", 5},
+			{"-15;", "-", 15},
+			{"!9;", "!", 9},
 		}
 
 		for _, test := range tests {
@@ -128,6 +128,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
 
 				assert.Equal(t, test.operator, prefix.Operator)
+				assertIntegerLiteral(t, prefix.Right, test.value)
 			})
 		}
 	})
