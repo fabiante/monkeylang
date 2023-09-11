@@ -35,6 +35,8 @@ func NewParser(lexer *lexer.Lexer) *Parser {
 
 	p.registerPrefixParseFn(token.Identifier, p.parseIdentifier)
 	p.registerPrefixParseFn(token.Int, p.parseIntLiteral)
+	p.registerPrefixParseFn(token.Bang, p.parsePrefixExpression)
+	p.registerPrefixParseFn(token.Minus, p.parsePrefixExpression)
 
 	p.nextToken()
 	p.nextToken()
@@ -121,9 +123,11 @@ func (p *Parser) parseExpressionStatement() ast.Statement {
 	return stmt
 }
 
+// parseExpression parses an expression starting with the currToken and the given precedence.
 func (p *Parser) parseExpression(precedence precedence) ast.Expression {
 	prefix := p.prefixParseFns[p.currToken.Type]
 	if prefix == nil {
+		p.noPrefixParseFnError(p.currToken.Type)
 		return nil
 	}
 
@@ -160,6 +164,20 @@ func (p *Parser) parseIntLiteral() ast.Expression {
 	}
 }
 
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	exp := &ast.PrefixExpression{
+		Token:    p.currToken,
+		Operator: p.currToken.Literal,
+		Right:    nil,
+	}
+
+	p.nextToken()
+
+	exp.Right = p.parseExpression(prefix)
+
+	return exp
+}
+
 // expectPeek checks if the next token is of the given type,
 //
 // If it is, it will advance to the next token by calling nextToken and return true.
@@ -177,6 +195,11 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 
 func (p *Parser) peekError(t token.TokenType) {
 	err := fmt.Sprintf("expected token type %d, got %d instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, err)
+}
+
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	err := fmt.Sprintf("no prefix parse fn for token type %d", t)
 	p.errors = append(p.errors, err)
 }
 
