@@ -124,6 +124,7 @@ func (p *Parser) parseExpressionStatement() ast.Statement {
 func (p *Parser) parseExpression(precedence precedence) ast.Expression {
 	prefix := p.prefixParseFns[p.currToken.Type]
 	if prefix == nil {
+		p.noPrefixParseFnError(p.currToken.Type)
 		return nil
 	}
 
@@ -177,6 +178,11 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 
 func (p *Parser) peekError(t token.TokenType) {
 	err := fmt.Sprintf("expected token type %d, got %d instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, err)
+}
+
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	err := fmt.Sprintf("no prefix parse fn for token type %d", t)
 	p.errors = append(p.errors, err)
 }
 
