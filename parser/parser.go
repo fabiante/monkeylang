@@ -222,3 +222,17 @@ func (p *Parser) registerPrefixParseFn(t token.TokenType, fn prefixParseFn) {
 func (p *Parser) registerInfixParseFn(t token.TokenType, fn infixParseFn) {
 	p.infixParseFns[t] = fn
 }
+
+func (p *Parser) peekPrecedence() precedence {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+	return lowest
+}
+
+func (p *Parser) currPrecedence() precedence {
+	if p, ok := precedences[p.currToken.Type]; ok {
+		return p
+	}
+	return lowest
+}
