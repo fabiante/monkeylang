@@ -97,6 +97,28 @@ func TestParser_ParseProgram(t *testing.T) {
 		assertLiteral(t, 5, stmtExpression.Expression)
 	})
 
+	t.Run("boolean literal expression", func(t *testing.T) {
+		input := `true;false;`
+
+		lex := lexer.NewLexer(input)
+		par := NewParser(lex)
+
+		program := par.ParseProgram()
+		requireNoParserErrors(t, par)
+		require.NotNil(t, program)
+		require.Len(t, program.Statements, 2)
+
+		stmt := program.Statements[0]
+		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+		assertLiteral(t, true, stmtExpression.Expression)
+
+		stmt = program.Statements[1]
+		stmtExpression, ok = stmt.(*ast.ExpressionStatement)
+		require.True(t, ok, "stmt has unexpected type %T", stmt)
+		assertLiteral(t, false, stmtExpression.Expression)
+	})
+
 	t.Run("prefix operators", func(t *testing.T) {
 		tests := []struct {
 			input    string
@@ -249,6 +271,8 @@ func assertLiteral(t *testing.T, value any, node ast.Expression) {
 		assertIntegerLiteral(t, v, node)
 	case int:
 		assertIntegerLiteral(t, int64(v), node)
+	case bool:
+		assertBooleanLiteral(t, v, node)
 	default:
 		panic(fmt.Errorf("unexpected value type %T", v))
 	}
@@ -260,6 +284,14 @@ func assertIntegerLiteral(t *testing.T, expected int64, node ast.Expression) {
 
 	assert.Equal(t, expected, identifier.Value)
 	assert.Equal(t, strconv.FormatInt(expected, 10), identifier.TokenLiteral())
+}
+
+func assertBooleanLiteral(t *testing.T, expected bool, node ast.Expression) {
+	identifier, ok := node.(*ast.BooleanLiteral)
+	require.True(t, ok, "node has unexpected type %T", node)
+
+	assert.Equal(t, expected, identifier.Value)
+	assert.Equal(t, strconv.FormatBool(expected), identifier.TokenLiteral())
 }
 
 func assertIdentifier(t *testing.T, value string, node ast.Expression) {
