@@ -152,12 +152,12 @@ func TestParser_ParseProgram(t *testing.T) {
 		}
 	})
 
-	t.Run("infix operators", func(t *testing.T) {
+	t.Run("infix expressions", func(t *testing.T) {
 		tests := []struct {
 			input    string
 			operator string
-			left     int64
-			right    int64
+			left     any
+			right    any
 		}{
 			{"5 + 6;", "+", 5, 6},
 			{"5 - 6;", "-", 5, 6},
@@ -167,6 +167,8 @@ func TestParser_ParseProgram(t *testing.T) {
 			{"5 < 6;", "<", 5, 6},
 			{"5 == 6;", "==", 5, 6},
 			{"5 != 6;", "!=", 5, 6},
+			{"false != true;", "!=", false, true},
+			{"true != false;", "!=", true, false},
 		}
 
 		for _, test := range tests {
