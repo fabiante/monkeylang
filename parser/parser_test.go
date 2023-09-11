@@ -245,6 +245,23 @@ func TestParser_ParseProgram(t *testing.T) {
 				"3 < 5 == true",
 				"((3 < 5) == true)",
 			},
+			// tests oriented around grouping with parens
+			{
+				"(a + b) * c",
+				"((a + b) * c)",
+			},
+			{
+				"(5 + 5) * 2",
+				"((5 + 5) * 2)",
+			},
+			{
+				"2 / (5 + 5)",
+				"(2 / (5 + 5))",
+			},
+			{
+				"-(5 + 5)",
+				"(-(5 + 5))",
+			},
 		}
 
 		for i, test := range tests {
