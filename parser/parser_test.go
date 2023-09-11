@@ -5,6 +5,7 @@ import (
 	"github.com/fabiante/monkeylang/lexer"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"strconv"
 	"testing"
 )
 
@@ -96,11 +97,7 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
 		require.True(t, ok, "stmt has unexpected type %T", stmt)
 
-		identifier, ok := stmtExpression.Expression.(*ast.IntegerLiteral)
-		require.True(t, ok, "stmt expression has unexpected type %T", stmt)
-
-		assert.Equal(t, int64(5), identifier.Value)
-		assert.Equal(t, "5", identifier.TokenLiteral())
+		assertIntegerLiteral(t, stmtExpression.Expression, 5)
 	})
 }
 
@@ -121,6 +118,14 @@ func assertReturnStatement(t *testing.T, node ast.Statement) {
 
 	_, ok := node.(*ast.ReturnStatement)
 	require.True(t, ok, "node is not of expected type, got %T", node)
+}
+
+func assertIntegerLiteral(t *testing.T, node ast.Expression, expected int64) {
+	identifier, ok := node.(*ast.IntegerLiteral)
+	require.True(t, ok, "node has unexpected type %T", node)
+
+	assert.Equal(t, expected, identifier.Value)
+	assert.Equal(t, strconv.FormatInt(expected, 10), identifier.TokenLiteral())
 }
 
 func requireNoParserErrors(t *testing.T, p *Parser) {
