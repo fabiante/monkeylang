@@ -42,7 +42,7 @@ func TestParser_ParseProgram(t *testing.T) {
 
 		for i, test := range tests {
 			stmt := program.Statements[i]
-			assertLetStatement(t, stmt, test.expectedIdentifier)
+			assertLetStatement(t, test.expectedIdentifier, stmt)
 		}
 	})
 
@@ -76,11 +76,7 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
 		require.True(t, ok, "stmt has unexpected type %T", stmt)
 
-		identifier, ok := stmtExpression.Expression.(*ast.Identifier)
-		require.True(t, ok, "stmt expression has unexpected type %T", stmt)
-
-		assert.Equal(t, "foobar", identifier.Value)
-		assert.Equal(t, "foobar", identifier.TokenLiteral())
+		assertIdentifier(t, "foobar", stmtExpression.Expression)
 	})
 
 	t.Run("integer literal expression", func(t *testing.T) {
@@ -98,7 +94,7 @@ func TestParser_ParseProgram(t *testing.T) {
 		stmtExpression, ok := stmt.(*ast.ExpressionStatement)
 		require.True(t, ok, "stmt has unexpected type %T", stmt)
 
-		assertIntegerLiteral(t, stmtExpression.Expression, 5)
+		assertLiteral(t, 5, stmtExpression.Expression)
 	})
 
 	t.Run("prefix operators", func(t *testing.T) {
@@ -129,7 +125,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
 
 				assert.Equal(t, test.operator, prefix.Operator)
-				assertIntegerLiteral(t, prefix.Right, test.value)
+				assertLiteral(t, test.value, prefix.Right)
 			})
 		}
 	})
@@ -165,12 +161,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				stmtExpression, ok := stmt.(*ast.ExpressionStatement)
 				require.True(t, ok, "stmt has unexpected type %T", stmt)
 
-				prefix, ok := stmtExpression.Expression.(*ast.InfixExpression)
-				require.True(t, ok, "prefix expression has unexpected type %T", stmt)
-
-				assert.Equal(t, test.operator, prefix.Operator)
-				assertIntegerLiteral(t, prefix.Left, test.left)
-				assertIntegerLiteral(t, prefix.Right, test.right)
+				assertInfixExpression(t, test.left, test.operator, test.right, stmtExpression.Expression)
 			})
 		}
 	})
@@ -231,7 +222,7 @@ func TestParser_ParseProgram(t *testing.T) {
 	})
 }
 
-func assertLetStatement(t *testing.T, node ast.Statement, name string) {
+func assertLetStatement(t *testing.T, name string, node ast.Statement) {
 	require.NotNil(t, node)
 	assert.Equal(t, "let", node.TokenLiteral())
 
@@ -250,12 +241,47 @@ func assertReturnStatement(t *testing.T, node ast.Statement) {
 	require.True(t, ok, "node is not of expected type, got %T", node)
 }
 
-func assertIntegerLiteral(t *testing.T, node ast.Expression, expected int64) {
+func assertLiteral(t *testing.T, value any, node ast.Expression) {
+	require.NotNil(t, node)
+
+	switch v := value.(type) {
+	case int64:
+		assertIntegerLiteral(t, v, node)
+	case int:
+		assertIntegerLiteral(t, int64(v), node)
+	default:
+		panic(fmt.Errorf("unexpected value type %T", v))
+	}
+}
+
+func assertIntegerLiteral(t *testing.T, expected int64, node ast.Expression) {
 	identifier, ok := node.(*ast.IntegerLiteral)
 	require.True(t, ok, "node has unexpected type %T", node)
 
 	assert.Equal(t, expected, identifier.Value)
 	assert.Equal(t, strconv.FormatInt(expected, 10), identifier.TokenLiteral())
+}
+
+func assertIdentifier(t *testing.T, value string, node ast.Expression) {
+	require.NotNil(t, node)
+
+	ident, ok := node.(*ast.Identifier)
+	require.True(t, ok, "node is not of expected type, got %T", node)
+
+	assert.Equal(t, value, ident.Value)
+	assert.Equal(t, value, ident.TokenLiteral())
+}
+
+func assertInfixExpression(t *testing.T, left any, operator string, right any, node ast.Expression) {
+	require.NotNil(t, node)
+
+	exp, ok := node.(*ast.InfixExpression)
+	require.True(t, ok, "node is not of expected type, got %T", node)
+
+	assertLiteral(t, left, exp.Left)
+	assert.Equal(t, operator, exp.Operator)
+	assert.Equal(t, operator, exp.TokenLiteral())
+	assertLiteral(t, right, exp.Right)
 }
 
 func requireNoParserErrors(t *testing.T, p *Parser) {
